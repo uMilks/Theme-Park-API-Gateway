@@ -58,27 +58,34 @@ app.get('/Ingressos/:email', (req, res, next) => {
 });
 
 // Método HTTP POST /Ingressos - adiciona um novo ingresso
-app.post('/Ingressos', (req, res, next) => {
-    data = req.body.dataEfetivacao;
-    data_formatada = `${data[6]}${data[7]}${data[8]}${data[9]}-${data[3]}${data[4]}-${data[0]}${data[1]}`
-    db.run(`INSERT INTO ingressos(email, tipo, dataEfetivacao, usos, usoMax) VALUES(?,?,?,?,?)`,
-         [req.body.email, req.body.tipo, data_formatada, req.body.usos, req.body.usoMax], (err) => {
-        if (err) {
-            console.log("Error: " + err);
-            res.status(500).send('Erro ao criar ingresso.');
-        } else {
-            console.log('Ingresso criado com sucesso!');
-            res.status(200).send('Ingresso criado com sucesso!');
-        }
-    });
+app.post('/Ingressos', async (req, res, next) => {
+    let fetch_data = await fetch(`http://localhost:8000/Cadastro/${req.body.email}`);
+    if (fetch_data.status == 200) {
+        data = req.body.dataEfetivacao;
+        data_formatada = `${data[6]}${data[7]}${data[8]}${data[9]}-${data[3]}${data[4]}-${data[0]}${data[1]}`;
+        db.run(`INSERT INTO ingressos(email, tipo, dataEfetivacao, usos, usoMax) VALUES(?,?,?,?,?)`,
+            [req.body.email, req.body.tipo, data_formatada, req.body.usos, req.body.usoMax], (err) => {
+            if (err) {
+                console.log("Error: " + err);
+                res.status(500).send('Erro ao criar ingresso.');
+            } else {
+                console.log('Ingresso criado com sucesso!');
+                res.status(200).send('Ingresso criado com sucesso!');
+            }
+        });
+    } else {
+        console.log("Cliente não encontrado.");
+        res.status(404).send('Cliente não encontrado.');
+    }
 });
 
 // Método HTTP PATCH /Ingressos/addUso/:email - adiciona um uso em um ingresso com base no email
-app.patch('/Ingressos/addUso/:email', (req, res, next) => {
+app.patch('/Ingressos/addUso/:email', async (req, res, next) => {
     // Primeiro pesquisa o ingresso, tanto para checar se existe quanto para pegar os dados do ingresso.
     // TODO: Talvez seja bom checar se o email existe nos cadastros?
-    db.get( `SELECT * FROM ingressos WHERE email = ?`, 
-            req.params.email, (err, result) => {
+    let fetch_data = await fetch(`http://localhost:8000/Cadastro/${req.params.email}`);
+    if (fetch_data.status == 200) {
+    db.get( `SELECT * FROM ingressos WHERE email = ?`, req.params.email, (err, result) => {
         if (err) { 
             console.log("Erro: "+err);
             res.status(500).send('Erro ao obter dados.');
@@ -122,7 +129,10 @@ app.patch('/Ingressos/addUso/:email', (req, res, next) => {
             }
         }
     });
-    
+    } else {
+        console.log("Cliente não encontrado.");
+        res.status(404).send('Cliente não encontrado.');
+    }
 });
 
 // Método HTTP PATCH /Ingressos/:email - altera um ingresso com base no email
@@ -138,6 +148,22 @@ app.patch('/Ingressos/:email', (req, res, next) => {
                 res.status(200).send('Ingresso alterado com sucesso!');
             }
     });
+});
+
+//Método HTTP DELETE /Ingressos/:id - remove um ingresso
+app.delete('/Ingressos/:email', (req, res, next) => {
+    db.run(`DELETE FROM ingressos WHERE email = ?`, req.params.email, function(err) {
+      if (err){
+            console.log("Erro ao remover ingresso.");
+            res.status(500).send('Erro ao remover ingresso.');
+      } else if (this.changes == 0) {
+            console.log("Ingresso não encontrado.");
+            res.status(404).send('Ingresso não encontrado.');
+      } else {
+            console.log("Ingresso removido com sucesso!");
+            res.status(200).send('Ingresso removido com sucesso!');
+      }
+   });
 });
 
 // Inicia o Servidor na porta 8090

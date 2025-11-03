@@ -22,8 +22,7 @@ var db = new sqlite3.Database('./dados.db', (err) => {
 
 // Cria a tabela filas, caso ela não exista
 db.run(`CREATE TABLE IF NOT EXISTS filas 
-        (pessoas NUMERIC NOT NULL, id INTEGER PRIMARY KEY NOT NULL UNIQUE, 
-        )`, 
+        (pessoas NUMERIC NOT NULL, id INTEGER PRIMARY KEY NOT NULL UNIQUE)`, 
         [], (err) => {
            if (err) {
               console.log('ERRO: não foi possível criar tabela.');
@@ -116,7 +115,7 @@ app.patch('/Filas/IO/:id', (req, res, next) => {
     });
 });
 
-//Método HTTP DELETE /Filas/:id - remove uma atração
+//Método HTTP DELETE /Filas/:id - remove uma fila
 app.delete('/Filas/:id', (req, res, next) => {
     db.run(`DELETE FROM filas WHERE id = ?`, req.params.id, function(err) {
       if (err){
