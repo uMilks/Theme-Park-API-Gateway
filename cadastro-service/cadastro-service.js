@@ -59,10 +59,24 @@ app.get('/Cadastro/:email', (req, res, next) => {
     });
 });
 
+// Método HTTP POST /Cadastro - cadastra um novo cliente
+app.post('/Cadastro', (req, res, next) => {
+    db.run(`INSERT INTO cadastro(nome, telefone, email) VALUES(?,?,?)`, 
+         [req.body.nome, req.body.telefone, req.body.email], (err) => {
+        if (err) {
+            console.log("Error: " + err);
+            res.status(500).send('Erro ao cadastrar cliente.');
+        } else {
+            console.log('Cliente cadastrado com sucesso!');
+            res.status(200).send('Cliente cadastrado com sucesso!');
+        }
+    });
+});
+
 // Método HTTP PATCH /Cadastro/:email - altera o cadastro de um cliente
 app.patch('/Cadastro/:email', (req, res, next) => {
     db.run(`UPDATE cadastro SET nome = COALESCE(?,nome), telefone = COALESCE(?,telefone) WHERE email = ?`,
-           [req.body.nome, req.params.telefone, req.body.email], function(err) {
+           [req.body.nome, req.body.telefone, req.params.email], function(err) {
             if (err){
                 res.status(500).send('Erro ao alterar dados.');
             } else if (this.changes == 0) {
