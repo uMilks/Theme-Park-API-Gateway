@@ -90,17 +90,25 @@ app.patch('/Atracoes/:id', (req, res, next) => {
 });
 
 // Método HTTP DELETE /Atracoes/:id - remove uma atração
-app.delete('/Atracoes/:id', (req, res, next) => {
-    db.run(`DELETE FROM atracoes WHERE id = ?`, req.params.id, function(err) {
-      if (err){
-         res.status(500).send('Erro ao remover atração.');
-      } else if (this.changes == 0) {
-         console.log("Atração não encontrada.");
-         res.status(404).send('Atração não encontrada.');
-      } else {
-         res.status(200).send('Atração removida com sucesso!');
-      }
-   });
+app.delete('/Atracoes/:id', async (req, res, next) => {
+    fetch_del_fila = await fetch(`http://localhost:8000/Filas/${req.params.id}`, {
+                method: "DELETE",
+                headers: {'Content-Type': 'application/json'}
+            });
+    if (fetch_del_fila.status == 200 || fetch_del_fila.status == 404) {
+        db.run(`DELETE FROM atracoes WHERE id = ?`, req.params.id, function(err) {
+            if (err){
+                res.status(500).send('Erro ao remover atração.');
+            } else if (this.changes == 0) {
+                console.log("Atração não encontrada.");
+                res.status(404).send('Atração não encontrada.');
+            } else {
+                res.status(200).send('Atração removida com sucesso!');
+            }
+        });
+    } else {
+        res.status(500).send('Erro ao remover atração.');
+    }
 });
 
 // Inicia o Servidor na porta 8070

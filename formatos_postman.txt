@@ -1,3 +1,11 @@
+Formato Cadastro:
+
+{
+    "nome": "Teste da Silva",
+    "email": "teste@gmail.com",
+    "telefone": "48984549731"
+}
+
 Formato Ingressos:
 
 {

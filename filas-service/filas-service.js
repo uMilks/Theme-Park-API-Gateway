@@ -59,17 +59,23 @@ app.get('/Filas/:id', (req, res, next) => {
 });
 
 // Método HTTP POST /Filas - cadastra uma nova fila
-app.post('/Filas', (req, res, next) => {
-    db.run(`INSERT INTO filas(pessoas, id) VALUES(?,?)`, 
-         [req.body.pessoas, req.body.id], (err) => {
-        if (err) {
-            console.log("Error: " + err);
-            res.status(500).send('Erro ao cadastrar fila.');
-        } else {
-            console.log('Fila cadastrada com sucesso!');
-            res.status(200).send('Fila cadastrada com sucesso!');
-        }
-    });
+app.post('/Filas', async (req, res, next) => {
+    let fetch_atracao = await fetch(`http://localhost:8000/Atracoes/${req.body.id}`);
+    if (fetch_atracao.status == 200) {
+        db.run(`INSERT INTO filas(pessoas, id) VALUES(?,?)`, 
+            [req.body.pessoas, req.body.id], (err) => {
+            if (err) {
+                console.log("Error: " + err);
+                res.status(500).send('Erro ao cadastrar fila.');
+            } else {
+                console.log('Fila cadastrada com sucesso!');
+                res.status(200).send('Fila cadastrada com sucesso!');
+            }
+        });
+    } else {
+        console.log("Atração não encontrada.");
+        res.status(404).send('Atração não encontrada.');
+    }
 });
 
 // Método HTTP PATCH /Filas/:id - altera uma fila
@@ -117,17 +123,25 @@ app.patch('/Filas/IO/:id', (req, res, next) => {
 });
 
 // Método HTTP DELETE /Filas/:id - remove uma fila
-app.delete('/Filas/:id', (req, res, next) => {
-    db.run(`DELETE FROM filas WHERE id = ?`, req.params.id, function(err) {
-      if (err){
-         res.status(500).send('Erro ao remover fila.');
-      } else if (this.changes == 0) {
-         console.log("Fila não encontrada.");
-         res.status(404).send('Fila não encontrada.');
-      } else {
-         res.status(200).send('Fila removida com sucesso!');
-      }
-   });
+app.delete('/Filas/:id', async (req, res, next) => {
+    fetch_del_espera = await fetch(`http://localhost:8000/Esperas/${req.params.id}`, {
+                method: "DELETE",
+                headers: {'Content-Type': 'application/json'}
+            });
+    if (fetch_del_espera.status == 200 || fetch_del_espera.status == 404) {
+        db.run(`DELETE FROM filas WHERE id = ?`, req.params.id, function(err) {
+            if (err){
+                res.status(500).send('Erro ao remover fila.');
+            } else if (this.changes == 0) {
+                console.log("Fila não encontrada.");
+                res.status(404).send('Fila não encontrada.');
+            } else {
+                res.status(200).send('Fila removida com sucesso!');
+            }
+        });
+    } else {
+        res.status(500).send('Erro ao remover fila.');
+    }
 });
 
 // Inicia o Servidor na porta 8060

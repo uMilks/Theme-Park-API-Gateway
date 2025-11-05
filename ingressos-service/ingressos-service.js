@@ -108,8 +108,9 @@ app.patch('/Ingressos/addUso/:email', async (req, res, next) => {
                 // Ver qual status HTTP usar aqui
                 res.status(500).send('Data de utilização inválida.');
             }
-            // Se a diferença de tempo em milissegundos entre as datas for menor que 31.536.000.000ms (365 dias), invalida o processo.
-            else if (result.tipo == 3 && data_ingresso.getTime() - data_atual.getTime() < 31536000000) {
+            // Se a diferença de tempo em milissegundos entre as datas for maior que 31.536.000.000ms (mais que 365 dias)
+            // ou menor que zero (usado antes da efetivação), invalida o processo.
+            else if (result.tipo == 3 && data_atual.getTime() - data_ingresso.getTime() > 31536000000 && data_atual.getTime() - data_ingresso.getTime() < 0) {
                 console.log("Data de utilização inválida.");
                 // Ver qual status HTTP usar aqui
                 res.status(500).send('Data de utilização inválida.');

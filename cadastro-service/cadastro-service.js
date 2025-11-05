@@ -89,17 +89,25 @@ app.patch('/Cadastro/:email', (req, res, next) => {
 });
 
 // Método HTTP DELETE /Cadastro/:email - remove um cliente do cadastro
-app.delete('/Cadastro/:email', (req, res, next) => {
-    db.run(`DELETE FROM cadastro WHERE email = ?`, req.params.email, function(err) {
-      if (err){
-         res.status(500).send('Erro ao remover cliente.');
-      } else if (this.changes == 0) {
-         console.log("Cliente não encontrado.");
-         res.status(404).send('Cliente não encontrado.');
-      } else {
-         res.status(200).send('Cliente removido com sucesso!');
-      }
-   });
+app.delete('/Cadastro/:email', async (req, res, next) => {
+    fetch_del_ingresso = await fetch(`http://localhost:8000/Ingressos/${req.params.email}`, {
+                method: "DELETE",
+                headers: {'Content-Type': 'application/json'}
+            });
+    if (fetch_del_ingresso.status == 200 || fetch_del_ingresso.status == 404) {
+        db.run(`DELETE FROM cadastro WHERE email = ?`, req.params.email, function(err) {
+            if (err){
+                res.status(500).send('Erro ao remover cliente.');
+            } else if (this.changes == 0) {
+                console.log("Cliente não encontrado.");
+                res.status(404).send('Cliente não encontrado.');
+            } else {
+                res.status(200).send('Cliente removido com sucesso!');
+            }
+        });
+    } else {
+        res.status(500).send('Erro ao remover cliente: Erro ao remover o ingresso do cliente.');
+    }
 });
 
 // Inicia o Servidor na porta 8080

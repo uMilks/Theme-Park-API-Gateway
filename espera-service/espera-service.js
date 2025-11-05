@@ -118,7 +118,7 @@ app.get('/Esperas/:id', (req, res, next) => {
 });
 
 // Método HTTP POST /Esperas - cadastra uma nova espera
-app.post('/Esperas', (req, res, next) => {
+app.post('/Esperas', async (req, res, next) => {
     /*
     db.run(`INSERT INTO esperas(tempo, id) VALUES(?,?)`, 
          [req.body.tempo, req.body.id], (err) => {
@@ -132,13 +132,23 @@ app.post('/Esperas', (req, res, next) => {
     });
     */
     try {
-        esperas[req.body.id] = Number(req.body.tempo);
-        console.log('Espera cadastrada com sucesso!');
-        res.status(200).send('Espera cadastrada com sucesso!');
-    } catch (err) {
-        console.log("Erro: " + err)
-        res.status(500).send("Erro ao cadastrar espera.")
-    }
+        if (esperas[req.body.id] == undefined) {
+            let fetch_fila = await fetch(`http://localhost:8000/Filas/${req.body.id}`);
+            if (fetch_fila.status == 200) {
+                esperas[req.body.id] = Number(req.body.tempo);
+                console.log('Espera cadastrada com sucesso!');
+                res.status(200).send('Espera cadastrada com sucesso!');
+            } else {
+                console.log("Fila não encontrada.");
+                res.status(404).send('Fila não encontrada.');
+            }
+        } else {
+            res.status(409).send("Espera já existe.")
+        }
+        } catch (err) {
+            console.log("Erro: " + err)
+            res.status(500).send("Erro ao cadastrar espera.")
+        }
 });
 
 // Método HTTP PATCH /Esperas/:id - altera uma espera
@@ -157,7 +167,7 @@ app.patch('/Esperas/:id', (req, res, next) => {
     });
     */
    try {
-        if (esperas[req.params.id]) {
+        if (esperas[req.params.id] != undefined) {
             esperas[req.params.id] = req.body.tempo;
             console.log('Espera alterada com sucesso!');
             res.status(200).send('Espera alterada com sucesso!');
@@ -186,7 +196,7 @@ app.delete('/Esperas/:id', (req, res, next) => {
    });
    */
     try {
-        if (esperas[req.params.id]) {
+        if (esperas[req.params.id] != undefined) {
             delete esperas[req.params.id]
             res.status(200).send('Espera removida com sucesso!');
         } else {
