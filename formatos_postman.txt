@@ -1,0 +1,32 @@
+Formato Ingressos:
+
+{
+	"email": "teste@gmail.com",
+    "tipo": "1",
+    "dataEfetivacao": "11/11/2025",
+    "usos": "0",
+    "usoMax": "10"
+}
+
+Formato Atracoes:
+
+{
+	"nome": "Fire Whip",
+    "id": "1",
+    "capacidade": "10",
+    "duracao": "300"
+}
+
+Formato Filas:
+
+{
+    "id": "1",
+    "pessoas": "0"
+}
+
+Formato Esperas: 
+
+{
+    "id": "1",
+    "tempo": "0"
+}

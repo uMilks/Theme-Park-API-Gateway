@@ -102,7 +102,8 @@ app.patch('/Filas/IO/:id', (req, res, next) => {
             // req.body.inOut pode servir para adicionar uma pessoa se for inserido 1 ou remover pessoas se for inserido -30.
             // se a atração tira mais pessoas do que tem na fila (caso o código da atração tire 30 pessoas de uma vez ao invés de uma por uma),
             // ela zera o número de pessoas para não deixar um número negativo passar.
-            let pessoas_alteradas = result.pessoas + req.body.inOut > 0 ? result.pessoas + req.body.inOut : 0
+            let inOut = Number(req.body.inOut);
+            let pessoas_alteradas = result.pessoas + inOut > 0 ? result.pessoas + inOut : 0
             db.run(`UPDATE filas SET pessoas = COALESCE(?,pessoas) WHERE id = ?`,
                 [pessoas_alteradas, req.params.id], function(err) {
                     if (err){
@@ -115,7 +116,7 @@ app.patch('/Filas/IO/:id', (req, res, next) => {
     });
 });
 
-//Método HTTP DELETE /Filas/:id - remove uma fila
+// Método HTTP DELETE /Filas/:id - remove uma fila
 app.delete('/Filas/:id', (req, res, next) => {
     db.run(`DELETE FROM filas WHERE id = ?`, req.params.id, function(err) {
       if (err){

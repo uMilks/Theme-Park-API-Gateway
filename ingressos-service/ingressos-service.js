@@ -82,7 +82,6 @@ app.post('/Ingressos', async (req, res, next) => {
 // Método HTTP PATCH /Ingressos/addUso/:email - adiciona um uso em um ingresso com base no email
 app.patch('/Ingressos/addUso/:email', async (req, res, next) => {
     // Primeiro pesquisa o ingresso, tanto para checar se existe quanto para pegar os dados do ingresso.
-    // TODO: Talvez seja bom checar se o email existe nos cadastros?
     let fetch_data = await fetch(`http://localhost:8000/Cadastro/${req.params.email}`);
     if (fetch_data.status == 200) {
     db.get( `SELECT * FROM ingressos WHERE email = ?`, req.params.email, (err, result) => {
@@ -150,7 +149,7 @@ app.patch('/Ingressos/:email', (req, res, next) => {
     });
 });
 
-//Método HTTP DELETE /Ingressos/:id - remove um ingresso
+// Método HTTP DELETE /Ingressos/:id - remove um ingresso
 app.delete('/Ingressos/:email', (req, res, next) => {
     db.run(`DELETE FROM ingressos WHERE email = ?`, req.params.email, function(err) {
       if (err){
@@ -184,35 +183,3 @@ function formatarISOdate(str) {
 function createDate(str) {
     return new Date(`${data[6]}${data[7]}${data[8]}${data[9]}`,`${data[3]}${data[4]}` - 1,`${data[0]}${data[1]}`)
 }
-
-/* Funções que perderam a utilidade e provavelmente vão ser apagadas
-function getStringFraction(str, start, end) {
-    str_formatada = '';
-    for (let i=start; i<=end; i++) {
-        str_formatada += str[i];
-    }
-    return str_formatada
-}
-
-function isYearApart(date1, date2) {
-    diffAno = getStringFraction(date1, 6, 9) - getStringFraction(date2, 6, 9)
-    if (diffAno > 1 || diffAno < -1) {
-        return true
-    } else if (diffAno == 1) {
-    // Significa que o date1 é após o date2.
-        diffMes = getStringFraction(date1, 3, 4) - getStringFraction(date2, 3, 4)
-        if (diffMes > 0) {
-            return false
-        } else if (diffMes) {
-            return 1
-        } else {
-
-        }
-    } else if (diffAno == -1){
-    // Significa que o date2 é após o date1.
-        
-    } else {
-        return false
-    }
-}
-*/

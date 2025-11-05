@@ -12,6 +12,36 @@ app.use(bodyParser.urlencoded({extended: true}));
 const sqlite3 = require('sqlite3');
 
 let esperas = {}
+
+const recalc_loop = setInterval(async ()=>{
+    const keys = Object.keys(esperas);
+    for (let i=0; i < keys.length; i++) {
+        esperas[keys[i]] = await recalcularEspera(keys[i]);
+    }
+}, 30000);
+
+async function recalcularEspera(id) {
+    try {
+        const atracao_fetch = await fetch(`http://localhost:8000/Atracoes/${id}`);
+        const fila_fetch = await fetch(`http://localhost:8000/Filas/${id}`);
+        if (atracao_fetch.status == 200 && fila_fetch.status == 200) {
+            atracao_data = await atracao_fetch.json();
+            fila_data = await fila_fetch.json();
+            let remaining_left = fila_data.pessoas / atracao_data.capacidade;
+            let remaining_arredondado = ~~ remaining_left;
+            // Isso significa que o resultado é fracionado, o que gera uma previsão imprecisa.
+            if (remaining_arredondado < remaining_arredondado) {
+                remaining_arredondado += 1
+            }
+            return remaining_arredondado * atracao_data.duracao
+        } else {
+            console.log('Erro ao recalcular tempo de espera da fila ' + id);
+        }
+    } catch (e) {
+        console.error("Erro: " + e);
+    }
+}
+
 /*
 // Acessa o arquivo com o banco de dados
 var db = new sqlite3.Database('./dados.db', (err) => {
@@ -75,7 +105,7 @@ app.get('/Esperas/:id', (req, res, next) => {
     */
     try {
         let result = esperas[req.params.id];
-        if (result) {
+        if (result != undefined) {
             res.status(200).json(result);
         } else {
             console.log("Espera não encontrada.");
@@ -102,7 +132,7 @@ app.post('/Esperas', (req, res, next) => {
     });
     */
     try {
-        esperas[req.body.id] = req.body.tempo;
+        esperas[req.body.id] = Number(req.body.tempo);
         console.log('Espera cadastrada com sucesso!');
         res.status(200).send('Espera cadastrada com sucesso!');
     } catch (err) {
@@ -141,58 +171,9 @@ app.patch('/Esperas/:id', (req, res, next) => {
     }
 });
 
-// Método HTTP PATCH /Esperas/IO/:id - altera o tempo de uma espera
-// TODO: Modificar o funcionamento desse PATCH de filas para esperas!
-app.patch('/Esperas/IO/:id', (req, res, next) => {
-    /*
-    // Primeiro faz um SELECT tanto para checar se a espera existe como para pegar os dados dela.
-    db.get( `SELECT * FROM esperas WHERE id = ?`, 
-            req.params.id, (err, result) => {
-        if (err) { 
-            console.log("Erro: "+err);
-            res.status(500).send('Erro ao obter dados.');
-        } else if (result == null) {
-            console.log("Espera não encontrada.");
-            res.status(404).send('Espera não encontrada.');
-        } else {
-            // req.body.inOut pode servir para adicionar tempo se for inserido uma pessoa na fila ou remover tempo se forem retiradas.
-            // Se a fila tira pessoas o suficiente para negativar o tempo de espera,
-            // ela zera o tempo para não deixar um número negativo passar.
-            let tempo_alterado = result.tempo + req.body.inOut > 0 ? result.tempo + req.body.inOut : 0
-            db.run(`UPDATE esperas SET tempo = COALESCE(?,tempo) WHERE id = ?`,
-                [tempo_alterado, req.params.id], function(err) {
-                    if (err){
-                        res.status(500).send('Erro ao alterar dados.');
-                    } else {
-                        res.status(200).send('Espera alterada com sucesso!');
-                    }
-            });
-        }
-    });
-    */
-   try {
-        let espera = esperas[req.params.id];
-        if (espera){
-            // req.body.inOut pode servir para adicionar tempo se for inserido uma pessoa na fila ou remover tempo se forem retiradas.
-            // Se a fila tira pessoas o suficiente para negativar o tempo de espera,
-            // ela zera o tempo para não deixar um número negativo passar.
-            let tempo_alterado = espera.tempo + req.body.inOut > 0 ? espera.tempo + req.body.inOut : 0;
-            esperas[req.params.id] = tempo_alterado;
-            console.log('Espera alterada com sucesso!')
-            res.status(200).send('Espera alterada com sucesso!');
-        } else {
-            console.log("Espera não encontrada.");
-            res.status(404).send('Espera não encontrada.');
-        }
-    } catch (err) {
-        console.log("Erro: "+err);
-        res.status(500).send('Erro ao obter dados.');
-    }
-});
-
-//Método HTTP DELETE /Esperas/:id - remove uma atração
-// TODO: ALTERAR PARA UM DICIONARIO
+// Método HTTP DELETE /Esperas/:id - remove uma atração
 app.delete('/Esperas/:id', (req, res, next) => {
+    /*
     db.run(`DELETE FROM esperas WHERE id = ?`, req.params.id, function(err) {
       if (err){
          res.status(500).send('Erro ao remover espera.');
@@ -203,6 +184,18 @@ app.delete('/Esperas/:id', (req, res, next) => {
          res.status(200).send('Espera removida com sucesso!');
       }
    });
+   */
+    try {
+        if (esperas[req.params.id]) {
+            delete esperas[req.params.id]
+            res.status(200).send('Espera removida com sucesso!');
+        } else {
+            console.log("Espera não encontrada.");
+            res.status(404).send('Espera não encontrada.');
+        }
+    } catch (err) {
+        res.status(500).send('Erro ao remover espera.');
+    }
 });
 
 // Inicia o Servidor na porta 8050

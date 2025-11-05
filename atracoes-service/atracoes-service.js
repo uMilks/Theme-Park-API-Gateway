@@ -21,6 +21,7 @@ var db = new sqlite3.Database('./dados.db', (err) => {
     });
 
 // Cria a tabela atracoes, caso ela não exista
+// duracao está em segundos
 db.run(`CREATE TABLE IF NOT EXISTS atracoes 
         (nome TEXT NOT NULL, id INTEGER PRIMARY KEY NOT NULL UNIQUE, 
          capacidade INTEGER NOT NULL, duracao NUMERIC NOT NULL)`, 
@@ -88,7 +89,7 @@ app.patch('/Atracoes/:id', (req, res, next) => {
     });
 });
 
-//Método HTTP DELETE /Atracoes/:id - remove uma atração
+// Método HTTP DELETE /Atracoes/:id - remove uma atração
 app.delete('/Atracoes/:id', (req, res, next) => {
     db.run(`DELETE FROM atracoes WHERE id = ?`, req.params.id, function(err) {
       if (err){

@@ -88,7 +88,7 @@ app.patch('/Cadastro/:email', (req, res, next) => {
     });
 });
 
-//Método HTTP DELETE /Cadastro/:email - remove um cliente do cadastro
+// Método HTTP DELETE /Cadastro/:email - remove um cliente do cadastro
 app.delete('/Cadastro/:email', (req, res, next) => {
     db.run(`DELETE FROM cadastro WHERE email = ?`, req.params.email, function(err) {
       if (err){
