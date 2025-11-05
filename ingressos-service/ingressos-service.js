@@ -97,7 +97,7 @@ app.patch('/Ingressos/addUso/:email', async (req, res, next) => {
             data_ingresso = createDate(result.dataEfetivacao);
             data_atual = createDate(new Date().toISOString());
             
-            if (result.tipo == 1 && result.usos > result.usoMax) {
+            if (result.tipo == 1 && result.usos >= result.usoMax) {
                 console.log("Limite de usos atingido.");
                 // Ver qual status HTTP usar aqui
                 res.status(500).send('Limite de usos atingido.');
@@ -181,6 +181,6 @@ function formatarISOdate(str) {
 }
 
 // Cria um objeto Date a partir de uma string no formato 'DD/MM/YYYY' (contando com as barras ou traços)
-function createDate(str) {
+function createDate(data) {
     return new Date(`${data[6]}${data[7]}${data[8]}${data[9]}`,`${data[3]}${data[4]}` - 1,`${data[0]}${data[1]}`)
 }
